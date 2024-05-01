@@ -1,4 +1,4 @@
-package com.example.flutter_local_notifications_tutorial
+package com.example.Eccho
 
 import io.flutter.embedding.android.FlutterActivity
 

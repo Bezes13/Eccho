@@ -1,5 +1,5 @@
 
-![LOCAL NOTIFICATIONS (2)](https://github.com/Snehasis4321/flutter_local_notifications_tutorial/assets/96995340/84e99975-726f-4036-9b59-3ae702d59cdf)
+![LOCAL NOTIFICATIONS (2)](https://github.com/Snehasis4321/Eccho/assets/96995340/84e99975-726f-4036-9b59-3ae702d59cdf)
 
 # Local Notification Flutter Tutorial
 the repository containes the code to show local notification in the flutter app
@@ -8,7 +8,7 @@ the repository containes the code to show local notification in the flutter app
 
 ## 📱 For IOS working -
 need todo some changes in `AppDelegate.swift` file located in `ios/Runner/AppDelegate.swift`
-please [check the file here.](https://github.com/Snehasis4321/flutter_local_notifications_tutorial/blob/main/ios/Runner/AppDelegate.swift)
+please [check the file here.](https://github.com/Snehasis4321/Eccho/blob/main/ios/Runner/AppDelegate.swift)
 
 ## 🛠 Update -
 you might see some difference between this code and code showed in the video , cause some issue have been fixed.

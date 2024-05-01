@@ -1,6 +1,11 @@
+import 'package:Eccho/entry.dart';
 import 'package:flutter/material.dart';
 
-import 'package:flutter_local_notifications_tutorial/local_notifications.dart';
+import 'package:Eccho/local_notifications.dart';
+import 'package:numberpicker/numberpicker.dart';
+import 'package:provider/provider.dart';
+
+import 'AppState.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -10,74 +15,95 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
+  List<Day> selectedDays = [];
+  int hour = 12;
+  int minute = 30;
+  String newTitle = "";
+
   @override
   void initState() {
     listenToNotifications();
     super.initState();
   }
 
-//  to listen to any notification clicked or not
   listenToNotifications() {
-    print("Listening to notification");
     LocalNotifications.onClickNotification.stream.listen((event) {
-      print(event);
       Navigator.pushNamed(context, '/another', arguments: event);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    var appState = Provider.of<AppState>(context);
     return Scaffold(
-      appBar: AppBar(title: Text("Flutter Local Notifications")),
-      body: Container(
+      appBar: AppBar(title: Text("Eccho")),
+      body: SizedBox(
         height: double.infinity,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton.icon(
-                icon: Icon(Icons.notifications_outlined),
-                onPressed: () {
-                  LocalNotifications.showSimpleNotification(
-                      title: "Simple Notification",
-                      body: "This is a simple notification",
-                      payload: "This is simple data");
-                },
-                label: Text("Simple Notification"),
-              ),
-              ElevatedButton.icon(
-                icon: Icon(Icons.timer_outlined),
-                onPressed: () {
-                  LocalNotifications.showPeriodicNotifications(
-                      title: "Periodic Notification",
-                      body: "This is a Periodic Notification",
-                      payload: "This is periodic data");
-                },
-                label: Text("Periodic Notifications"),
-              ),
-              ElevatedButton.icon(
-                icon: Icon(Icons.timer_outlined),
-                onPressed: () {
-                  LocalNotifications.showScheduleNotification(
-                      title: "Schedule Notification",
-                      body: "This is a Schedule Notification",
-                      payload: "This is schedule data");
-                },
-                label: Text("Schedule Notifications"),
-              ),
-              // to close periodic notifications
-              ElevatedButton.icon(
-                  icon: Icon(Icons.delete_outline),
-                  onPressed: () {
-                    LocalNotifications.cancel(1);
+              ListTile(
+                title: TextField(
+                  controller: TextEditingController(text: newTitle),
+                  onChanged: (value) {
+                    newTitle = value;
                   },
-                  label: Text("Close Periodic Notifcations")),
-              ElevatedButton.icon(
-                  icon: Icon(Icons.delete_forever_outlined),
-                  onPressed: () {
-                    LocalNotifications.cancelAll();
+                  textAlign: TextAlign.center,
+                ),
+                onTap: () {},
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  NumberPicker(
+                    value: hour,
+                    minValue: 0,
+                    maxValue: 23,
+                    onChanged: (value) => setState(() => hour = value),
+                    infiniteLoop: true,
+                  ),
+                  const Text(":"),
+                  NumberPicker(
+                    value: minute,
+                    minValue: 0,
+                    maxValue: 59,
+                    onChanged: (value) => setState(() => minute = value),
+                    infiniteLoop: true,
+                  ),
+                ],
+              ),
+              Wrap(
+                spacing: 0.0,
+                children: Day.values
+                    .map((day) => FilterChip(
+                    label: Text(day.short),
+                    showCheckmark: false,
+                    selected: selectedDays.contains(day),
+                    onSelected: (a) => {
+                      setState(() {
+                        if (selectedDays.contains(day)) {
+                          selectedDays.remove(day);
+                        } else {
+                          selectedDays.add(day);
+                        }
+                      })
+                    }))
+                    .toList(),
+              ),
+              ElevatedButton(
+                  onPressed: () async {
+                    Navigator.pushNamed(context, "/another");
+                    await LocalNotifications.showScheduleNotification(
+                        title: newTitle,
+                        body: "Just do it!",
+                        hours: hour,
+                        minutes: minute,
+                        days: selectedDays,
+                        appState: appState
+                        );
                   },
-                  label: Text("Cancel All Notifcations"))
+                  child: const Text("Save")),
             ],
           ),
         ),

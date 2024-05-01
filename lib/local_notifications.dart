@@ -1,3 +1,6 @@
+import 'package:Eccho/AppState.dart';
+import 'package:Eccho/constants.dart';
+import 'package:Eccho/entry.dart' as e;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -20,7 +23,7 @@ class LocalNotifications {
         AndroidInitializationSettings('@mipmap/ic_launcher');
     final DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
-      onDidReceiveLocalNotification: (id, title, body, payload) =>null,
+      onDidReceiveLocalNotification: (id, title, body, payload) => null,
     );
     final LinuxInitializationSettings initializationSettingsLinux =
         LinuxInitializationSettings(defaultActionName: 'Open notification');
@@ -30,14 +33,16 @@ class LocalNotifications {
             iOS: initializationSettingsDarwin,
             linux: initializationSettingsLinux);
 
-    // request notification permissions 
+    // request notification permissions
     _flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()!.requestPermission();
-    
+            AndroidFlutterLocalNotificationsPlugin>()!
+        .requestPermission();
+
     _flutterLocalNotificationsPlugin.initialize(initializationSettings,
         onDidReceiveNotificationResponse: onNotificationTap,
         onDidReceiveBackgroundNotificationResponse: onNotificationTap);
+    tz.initializeTimeZones();
   }
 
   // show a simple notification
@@ -82,25 +87,37 @@ class LocalNotifications {
   static Future showScheduleNotification({
     required String title,
     required String body,
-    required String payload,
+    required int hours,
+    required int minutes,
+    required List<e.Day> days,
+    required AppState appState,
   }) async {
-    tz.initializeTimeZones();
-    await _flutterLocalNotificationsPlugin.zonedSchedule(
-        2,
-        title,
-        body,
-        tz.TZDateTime.now(tz.local).add(const Duration(seconds: 5)),
-        const NotificationDetails(
-            android: AndroidNotificationDetails(
-                'channel 3', 'your channel name',
-                channelDescription: 'your channel description',
-                importance: Importance.max,
-                priority: Priority.high,
-                ticker: 'ticker')),
-        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime,
-        payload: payload);
+    List<int> ids = [];
+    int nextID = appState.nextNotificationId;
+    for (int i = 0; i < batch; i++) {
+      var day = tz.TZDateTime.from(tz.TZDateTime.now(tz.local).copyWith(hour: hours, minute: minutes, second: 0), tz.local);
+      if (days.any((element) => element.id == day.weekday)) {
+        await _flutterLocalNotificationsPlugin.zonedSchedule(
+            nextID,
+            title,
+            body,
+            day,
+            const NotificationDetails(
+                android: AndroidNotificationDetails(
+                    'channel 3', 'your channel name',
+                    channelDescription: 'your channel description',
+                    importance: Importance.max,
+                    priority: Priority.high,
+                    ticker: 'ticker')),
+            androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+            uiLocalNotificationDateInterpretation:
+                UILocalNotificationDateInterpretation.absoluteTime,
+            payload: "payload");
+        ids.add(nextID);
+        nextID++;
+      }
+    }
+    appState.saveNotification(title, hours, minutes, days, ids, nextID);
   }
 
   // close a specific channel notification
